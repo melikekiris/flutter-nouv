@@ -354,9 +354,8 @@ class _CoursesPageState extends State<CoursesPage> {
   }
 
   Future<List<Cours>> fetchCours() async {
-    final response = await http.get(
-      Uri.parse('http://192.168.1.161/equihorizon/nouveau/get_cours.php'),
-    );
+    final response = await http.get(Uri.parse('http://192.168.231.45/equihorizon/nouveau/get_cours.php'));
+
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -367,7 +366,7 @@ class _CoursesPageState extends State<CoursesPage> {
   }
 
   Future<void> _inscrireUtilisateur(String idCours) async {
-    const String apiUrl = 'http://192.168.1.161/equihorizon/nouveau/inscription.php';
+const String apiUrl = 'http://192.168.231.45/equihorizon/nouveau/inscription.php';
 
     final Map<String, dynamic> data = {
       "refidcours": idCours.toString(),
