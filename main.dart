@@ -123,16 +123,6 @@ class _LoginPageState extends State<LoginPage> {
                 Container(
                   width: 100,
                   height: 100,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 10,
-                        offset: Offset(4, 4),
-                      ),
-                    ],
-                  ),
                   child: ClipOval(
                     child: Image.asset(
                       'lib/assets/horse_logo.png',
@@ -300,10 +290,7 @@ class ProfilePage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            'Profil du cavalier',
-            style: TextStyle(fontSize: 20),
-          ),
+          Text('Profil du cavalier', style: TextStyle(fontSize: 20)),
           SizedBox(height: 20),
           ElevatedButton.icon(
             onPressed: () => _logout(context),
@@ -382,35 +369,41 @@ class _CoursesPageState extends State<CoursesPage> {
   Future<void> _inscrireUtilisateur(String idCours) async {
     const String apiUrl = 'http://192.168.1.161/equihorizon/nouveau/inscription.php';
 
-final Map<String, dynamic> data = {
-  "refidcours": idCours.toString(),
-  "refidcava": "1", // <-- en string pour être sûr
-};
+    final Map<String, dynamic> data = {
+      "refidcours": idCours.toString(),
+      "refidcava": "1", // <-- remplacer plus tard par ID utilisateur connecté
+    };
 
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {"Content-Type": "application/json"},
+        body: utf8.encode(jsonEncode(data)),
+      );
 
-final response = await http.post(
-  Uri.parse(apiUrl),
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: jsonEncode(data), // ← le plus important
-);
+      print("Status: ${response.statusCode}");
+      print("Body: ${response.body}");
 
-
-    if (response.statusCode == 200) {
-      final result = jsonDecode(response.body);
-      if (result['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Inscription réussie ✅")),
-        );
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        if (result['success'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Inscription réussie ✅")),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Erreur : ${result['error']}")),
+          );
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Erreur : ${result['error']}")),
+          SnackBar(content: Text("Erreur HTTP : ${response.statusCode}")),
         );
       }
-    } else {
+    } catch (e) {
+      print("Erreur Flutter (catch) : $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur réseau lors de l’inscription.")),
+        SnackBar(content: Text("Erreur de connexion : $e")),
       );
     }
   }
