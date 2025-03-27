@@ -356,78 +356,12 @@ class _CoursesPageState extends State<CoursesPage> {
   Future<List<Cours>> fetchCours() async {
     final response = await http.get(Uri.parse('http://192.168.231.45/equihorizon/nouveau/get_cours.php'));
 
-
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((json) => Cours.fromJson(json)).toList();
     } else {
       throw Exception('Erreur lors du chargement des cours');
     }
-  }
-
-  Future<void> _inscrireUtilisateur(String idCours) async {
-const String apiUrl = 'http://192.168.231.45/equihorizon/nouveau/inscription.php';
-
-    final Map<String, dynamic> data = {
-      "refidcours": idCours.toString(),
-      "refidcava": "1", // <-- remplacer plus tard par ID utilisateur connecté
-    };
-
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {"Content-Type": "application/json"},
-        body: utf8.encode(jsonEncode(data)),
-      );
-
-      print("Status: ${response.statusCode}");
-      print("Body: ${response.body}");
-
-      if (response.statusCode == 200) {
-        final result = jsonDecode(response.body);
-        if (result['success'] == true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Inscription réussie ✅")),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Erreur : ${result['error']}")),
-          );
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Erreur HTTP : ${response.statusCode}")),
-        );
-      }
-    } catch (e) {
-      print("Erreur Flutter (catch) : $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur de connexion : $e")),
-      );
-    }
-  }
-
-  void _showInscriptionDialog(BuildContext context, String idCours) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Inscription"),
-        content: Text("Souhaitez-vous vous inscrire à ce cours ?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("Non"),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await _inscrireUtilisateur(idCours);
-            },
-            child: Text("Oui"),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -458,7 +392,6 @@ const String apiUrl = 'http://192.168.231.45/equihorizon/nouveau/inscription.php
                     subtitle: Text(
                       'Jour : ${cours.jour}\nDe ${cours.heureDebut} à ${cours.heureFin}',
                     ),
-                    onTap: () => _showInscriptionDialog(context, cours.id),
                   ),
                 );
               },
