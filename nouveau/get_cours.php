@@ -3,7 +3,7 @@ header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json");
 
 $host = 'localhost';
-$dbname = 'equihorizon'; // ← mets le vrai nom de ta BDD
+$dbname = 'equihorizon';
 $user = 'root';
 $password = '';
 
