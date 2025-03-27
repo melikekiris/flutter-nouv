@@ -1,20 +1,16 @@
 <?php
+// get_cours.php
 header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json");
+header("Content-Type: application/json; charset=UTF-8");
 
-$host = 'localhost';
-$dbname = 'equihorizon';
-$user = 'root';
-$password = '';
+require_once "bdd_pdo.php";
 
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-    $stmt = $pdo->query("SELECT idcours, libcours, hdebut, hfin, jour FROM cours WHERE supprime = 0");
+    $stmt = $pdo->query("SELECT * FROM cours");
     $cours = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
     echo json_encode($cours);
 } catch (PDOException $e) {
-    echo json_encode(['error' => 'Erreur DB: ' . $e->getMessage()]);
+    http_response_code(500);
+    echo json_encode(["error" => "Erreur serveur : " . $e->getMessage()]);
 }
+?>
