@@ -1,0 +1,40 @@
+name: equihorizon
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  http: ^1.2.1
+
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  google_fonts: ^6.1.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - lib/assets/horse_logo.png
+    
+  # Si tu utilises des assets, tu peux les décommenter et ajouter les chemins ici
+  # assets:
+  #   - images/
+
+  # Exemple pour ajouter une police personnalisée
+  # fonts:
+  #   - family: Roboto
+  #     fonts:
+  #       - asset: fonts/Roboto-Regular.ttf
+  #       - asset: fonts/Roboto-Bold.ttf
+  #         weight: 700
