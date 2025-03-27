@@ -29,12 +29,23 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
   bool _isLoading = false;
 
   Future<bool> _callYourApi(String username, String password) async {
-    await Future.delayed(Duration(seconds: 1));
-    return true;
+    final response = await http.post(
+Uri.parse('http://192.168.37.45/equihorizon/nouveau/api.php'),
+      body: {
+        'username': username,
+        'password': password,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['success'] == true;
+    } else {
+      return false;
+    }
   }
 
   void _submitForm() async {
@@ -61,24 +72,12 @@ class _LoginPageState extends State<LoginPage> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text(
-              'Erreur',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Color(0xFFA67C52),
-              ),
-            ),
-            content: Text(
-              'Identifiants incorrects',
-              style: TextStyle(color: Colors.black87),
-            ),
+            title: Text('Erreur'),
+            content: Text('Identifiants incorrects'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text(
-                  'OK',
-                  style: TextStyle(color: Color(0xFFA67C52)),
-                ),
+                child: Text('OK'),
               ),
             ],
           ),
@@ -120,17 +119,6 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: 100,
-                  height: 100,
-                  child: ClipOval(
-                    child: Image.asset(
-                      'lib/assets/horse_logo.png',
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 16),
                 Text(
                   'EQUIHORIZON',
                   style: GoogleFonts.playfairDisplay(
@@ -213,7 +201,6 @@ class _LoginPageState extends State<LoginPage> {
       obscureText: isPassword,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: Color(0xFFA67C52)),
         prefixIcon: Icon(icon, color: Color(0xFFA67C52)),
         filled: true,
         fillColor: Colors.white.withOpacity(0.95),
@@ -354,7 +341,9 @@ class _CoursesPageState extends State<CoursesPage> {
   }
 
   Future<List<Cours>> fetchCours() async {
-    final response = await http.get(Uri.parse('http://192.168.231.45/equihorizon/nouveau/get_cours.php'));
+    final response = await http.get(
+      Uri.parse('http://192.168.37.45/equihorizon/nouveau/get_cours.php'),
+    );
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
