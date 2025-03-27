@@ -143,6 +143,18 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // LOGO ICI
+                Container(
+                  width: 100,
+                  height: 100,
+                  child: ClipOval(
+                    child: Image.asset(
+                      'assets/horse_logo.png',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16),
                 Text(
                   'EQUIHORIZON',
                   style: GoogleFonts.playfairDisplay(
