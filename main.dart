@@ -20,6 +20,29 @@ class MyApp extends StatelessWidget {
   }
 }
 
+class User {
+  final String id;
+  final String nom;
+  final String prenom;
+  final String email;
+
+  User({
+    required this.id,
+    required this.nom,
+    required this.prenom,
+    required this.email,
+  });
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      id: json['id'].toString(),
+      nom: json['nom'],
+      prenom: json['prenom'],
+      email: json['email'],
+    );
+  }
+}
+
 class LoginPage extends StatefulWidget {
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -31,9 +54,9 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  Future<bool> _callYourApi(String username, String password) async {
+  Future<User?> _callYourApi(String username, String password) async {
     final response = await http.post(
-Uri.parse('http://192.168.37.45/equihorizon/nouveau/api.php'),
+      Uri.parse('http://192.168.37.45/equihorizon/nouveau/api.php'),
       body: {
         'username': username,
         'password': password,
@@ -42,10 +65,11 @@ Uri.parse('http://192.168.37.45/equihorizon/nouveau/api.php'),
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return data['success'] == true;
-    } else {
-      return false;
+      if (data['success'] == true) {
+        return User.fromJson(data['user']);
+      }
     }
+    return null;
   }
 
   void _submitForm() async {
@@ -54,7 +78,7 @@ Uri.parse('http://192.168.37.45/equihorizon/nouveau/api.php'),
         _isLoading = true;
       });
 
-      bool isValid = await _callYourApi(
+      User? user = await _callYourApi(
         _usernameController.text,
         _passwordController.text,
       );
@@ -63,10 +87,10 @@ Uri.parse('http://192.168.37.45/equihorizon/nouveau/api.php'),
         _isLoading = false;
       });
 
-      if (isValid) {
+      if (user != null) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomePage()),
+          MaterialPageRoute(builder: (context) => HomePage(user: user)),
         );
       } else {
         showDialog(
@@ -144,7 +168,7 @@ Uri.parse('http://192.168.37.45/equihorizon/nouveau/api.php'),
                     children: [
                       _buildTextField(
                         controller: _usernameController,
-                        label: 'Nom d\'utilisateur',
+                        label: 'Email',
                         icon: Icons.person,
                       ),
                       SizedBox(height: 16),
@@ -220,6 +244,9 @@ Uri.parse('http://192.168.37.45/equihorizon/nouveau/api.php'),
 }
 
 class HomePage extends StatefulWidget {
+  final User user;
+  const HomePage({required this.user});
+
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -227,21 +254,15 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
-  static const List<Widget> _pages = <Widget>[
-    ProfilePage(),
-    CoursesPage(),
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    final pages = [
+      ProfilePage(user: widget.user),
+      CoursesPage(),
+    ];
+
     return Scaffold(
-      body: _pages[_selectedIndex],
+      body: pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         items: const [
           BottomNavigationBarItem(
@@ -255,14 +276,15 @@ class _HomePageState extends State<HomePage> {
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Color(0xFFA67C52),
-        onTap: _onItemTapped,
+        onTap: (index) => setState(() => _selectedIndex = index),
       ),
     );
   }
 }
 
 class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
+  final User user;
+  const ProfilePage({required this.user});
 
   void _logout(BuildContext context) {
     Navigator.pushReplacement(
@@ -277,7 +299,12 @@ class ProfilePage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('Profil du cavalier', style: TextStyle(fontSize: 20)),
+          Text(
+            'Bienvenue ${user.prenom} ${user.nom}',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 10),
+          Text('Email : ${user.email}', style: TextStyle(fontSize: 16)),
           SizedBox(height: 20),
           ElevatedButton.icon(
             onPressed: () => _logout(context),
