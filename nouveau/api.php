@@ -1,58 +1,56 @@
 <?php
 header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: POST");
+header("Content-Type: application/json");
 
-require_once "bdd_pdo.php";
-
-$rawData = file_get_contents("php://input");
-
-// Nettoyer les caractères parasites
-$rawData = trim($rawData, '"');
-$rawData = stripslashes($rawData);
-$rawData = str_replace('\"', '"', $rawData);
-
-$data = json_decode($rawData, true);
-
-if (!isset($data["commande"])) {
-    http_response_code(400);
-    echo json_encode(["error" => "Commande non spécifiée"]);
-    exit();
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode([
+        "success" => false,
+        "message" => "Méthode non autorisée"
+    ]);
+    exit;
 }
 
-$commande = $data["commande"];
+require_once 'bdd_pdo.php';
 
-switch ($commande) {
-    case 8:
-        // Authentification
-        if (!isset($data["username"]) || !isset($data["password"])) {
-            http_response_code(400);
-            echo json_encode(["error" => "Champs manquants"]);
-            exit();
-        }
+$email = trim($_POST['username'] ?? '');
+$password = trim($_POST['password'] ?? '');
 
-        $username = $data["username"];
-        $password = $data["password"];
-
-        try {
-            $stmt = $pdo->prepare("SELECT id FROM utilisateurs WHERE username = ? AND password = ?");
-            $stmt->execute([$username, $password]);
-
-            if ($row = $stmt->fetch()) {
-                echo json_encode(["success" => true, "id" => $row["id"]]);
-            } else {
-                http_response_code(401);
-                echo json_encode(["success" => false, "error" => "Identifiants incorrects"]);
-            }
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(["success" => false, "error" => "Erreur serveur : " . $e->getMessage()]);
-        }
-        break;
-
-    default:
-        http_response_code(400);
-        echo json_encode(["error" => "Commande non reconnue"]);
-        break;
+if (empty($email) || empty($password)) {
+    echo json_encode([
+        "success" => false,
+        "message" => "Champs requis manquants"
+    ]);
+    exit;
 }
-?>
+
+try {
+    // Récupérer le cavalier par email
+    $stmt = $pdo->prepare("SELECT * FROM cavaliers WHERE emailcava = :email");
+    $stmt->execute(['email' => $email]);
+
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Vérification du mot de passe hashé
+    if ($user && password_verify($password, $user['password'])) {
+        echo json_encode([
+            "success" => true,
+            "message" => "Connexion réussie",
+            "user" => [
+                "id" => $user['idcava'],
+                "nom" => $user['nomcava'],
+                "prenom" => $user['prenomcava'],
+                "email" => $user['emailcava']
+            ]
+        ]);
+    } else {
+        echo json_encode([
+            "success" => false,
+            "message" => "Identifiants incorrects"
+        ]);
+    }
+} catch (PDOException $e) {
+    echo json_encode([
+        "success" => false,
+        "message" => "Erreur serveur : " . $e->getMessage()
+    ]);
+}
